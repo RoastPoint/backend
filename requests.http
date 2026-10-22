@@ -1,0 +1,50 @@
+### Создать заказ. На новой БД: 201 Created, total=560.00, id=11.
+POST http://localhost:8080/api/orders
+Content-Type: application/json
+
+{"cashierId":1,"items":[{"menuItemId":3,"quantity":2},{"menuItemId":8,"quantity":1}]}
+
+### Прочитать тестовый заказ
+GET http://localhost:8080/api/orders/1
+
+### Прочитать созданный заказ (подставьте id из ответа POST)
+GET http://localhost:8080/api/orders/11
+
+### 404: заказ не найден
+GET http://localhost:8080/api/orders/999999
+
+### 400: количество должно быть больше нуля
+POST http://localhost:8080/api/orders
+Content-Type: application/json
+
+{"cashierId":1,"items":[{"menuItemId":3,"quantity":0}]}
+
+### 400: пустой заказ
+POST http://localhost:8080/api/orders
+Content-Type: application/json
+
+{"cashierId":1,"items":[]}
+
+### 400: пользователь не кассир
+POST http://localhost:8080/api/orders
+Content-Type: application/json
+
+{"cashierId":2,"items":[{"menuItemId":3,"quantity":1}]}
+
+### 404: позиция не найдена
+POST http://localhost:8080/api/orders
+Content-Type: application/json
+
+{"cashierId":1,"items":[{"menuItemId":999999,"quantity":1}]}
+
+### 409: недоступная позиция (для новой БД с данными этого проекта)
+POST http://localhost:8080/api/orders
+Content-Type: application/json
+
+{"cashierId":1,"items":[{"menuItemId":10,"quantity":1}]}
+
+### 400: повторяющаяся позиция
+POST http://localhost:8080/api/orders
+Content-Type: application/json
+
+{"cashierId":1,"items":[{"menuItemId":3,"quantity":1},{"menuItemId":3,"quantity":2}]}

@@ -1,0 +1,10 @@
+CREATE SCHEMA IF NOT EXISTS coffee_shop;
+SET search_path TO coffee_shop,public;
+CREATE TABLE IF NOT EXISTS categories(id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,name varchar(100) NOT NULL UNIQUE);
+CREATE TABLE IF NOT EXISTS menu_items(id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,category_id integer NOT NULL REFERENCES categories(id),name varchar(150) NOT NULL,price numeric(10,2) NOT NULL CHECK(price>=0),is_available boolean NOT NULL DEFAULT true);
+CREATE TABLE IF NOT EXISTS users(id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,full_name varchar(150) NOT NULL,login varchar(50) NOT NULL UNIQUE,password_hash varchar(255) NOT NULL,role varchar(20) NOT NULL CHECK(role IN ('cashier','barista','admin')));
+CREATE TABLE IF NOT EXISTS orders(id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,cashier_id integer NOT NULL REFERENCES users(id),status varchar(20) NOT NULL DEFAULT 'accepted' CHECK(status IN ('accepted','preparing','issued')));
+CREATE TABLE IF NOT EXISTS order_items(id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,order_id integer NOT NULL REFERENCES orders(id) ON DELETE CASCADE,menu_item_id integer NOT NULL REFERENCES menu_items(id),quantity integer NOT NULL CHECK(quantity>0),unit_price numeric(10,2) NOT NULL CHECK(unit_price>=0),UNIQUE(order_id,menu_item_id));
+CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
+CREATE INDEX IF NOT EXISTS idx_orders_cashier ON orders(cashier_id);
+CREATE INDEX IF NOT EXISTS idx_items_menu ON order_items(menu_item_id);
