@@ -26,7 +26,8 @@ public class ErrorHandler {
   return response(HttpStatus.BAD_REQUEST,"Ошибка входных данных",e.getBindingResult().getFieldErrors().stream()
    .map(f->f.getField()+": "+f.getDefaultMessage()).toList());
  }
- @ExceptionHandler({HttpMessageNotReadableException.class,MethodArgumentTypeMismatchException.class,ConstraintViolationException.class})
+ @ExceptionHandler({HttpMessageNotReadableException.class,MethodArgumentTypeMismatchException.class,ConstraintViolationException.class,
+  org.springframework.web.bind.MissingServletRequestParameterException.class})
  ResponseEntity<ErrorResponse> invalid(Exception e) { return response(HttpStatus.BAD_REQUEST,"Проверьте JSON, типы и значения параметров",List.of()); }
  @ExceptionHandler(DataIntegrityViolationException.class)
  ResponseEntity<ErrorResponse> integrity(Exception e) { log.warn("Database constraint violation",e); return response(HttpStatus.CONFLICT,"Нарушено ограничение данных",List.of()); }

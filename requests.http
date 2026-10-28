@@ -1,50 +1,74 @@
-### Создать заказ. На новой БД: 201 Created, total=560.00, id=11.
-POST http://localhost:8080/api/orders
+@base = http://localhost:8080
+# Retain cookies. Define demoPassword in your private HTTP environment.
+### Obtain CSRF before login
+GET {{base}}/api/auth/csrf
+
+> {% client.global.set("csrf", response.body.token); %}
+
+### Login: use cashier1, barista1 or admin1
+POST {{base}}/api/auth/login
+Content-Type: application/x-www-form-urlencoded
+X-CSRF-TOKEN: {{csrf}}
+
+login=cashier1&password={{demoPassword}}
+
+### Refresh token after every login
+GET {{base}}/api/auth/csrf
+
+> {% client.global.set("csrf", response.body.token); %}
+
+### Current account
+GET {{base}}/api/auth/me
+
+### Menu
+GET {{base}}/api/menu
+
+### Create as cashier
+POST {{base}}/api/orders
 Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
 
-{"cashierId":1,"items":[{"menuItemId":3,"quantity":2},{"menuItemId":8,"quantity":1}]}
+{"items":[{"menuItemId":3,"quantity":2}]}
 
-### Прочитать тестовый заказ
-GET http://localhost:8080/api/orders/1
+> {% client.global.set("orderId", response.body.id); %}
 
-### Прочитать созданный заказ (подставьте id из ответа POST)
-GET http://localhost:8080/api/orders/11
+### Read
+GET {{base}}/api/orders/{{orderId}}
 
-### 404: заказ не найден
-GET http://localhost:8080/api/orders/999999
+### Queue
+GET {{base}}/api/orders?status=accepted&limit=50&offset=0
 
-### 400: количество должно быть больше нуля
-POST http://localhost:8080/api/orders
+### Login as barista1 and refresh CSRF before this request
+PATCH {{base}}/api/orders/{{orderId}}/status
 Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
 
-{"cashierId":1,"items":[{"menuItemId":3,"quantity":0}]}
+{"status":"preparing"}
 
-### 400: пустой заказ
-POST http://localhost:8080/api/orders
+### Barista marks ready
+PATCH {{base}}/api/orders/{{orderId}}/status
 Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
 
-{"cashierId":1,"items":[]}
+{"status":"ready"}
 
-### 400: пользователь не кассир
-POST http://localhost:8080/api/orders
+### Login as cashier1 and refresh CSRF
+PATCH {{base}}/api/orders/{{orderId}}/status
 Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
 
-{"cashierId":2,"items":[{"menuItemId":3,"quantity":1}]}
+{"status":"issued"}
 
-### 404: позиция не найдена
-POST http://localhost:8080/api/orders
+### Login as admin1 and refresh CSRF
+PUT {{base}}/api/menu/3
 Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
 
-{"cashierId":1,"items":[{"menuItemId":999999,"quantity":1}]}
+{"categoryId":1,"name":"Капучино","price":210.00,"available":true}
 
-### 409: недоступная позиция (для новой БД с данными этого проекта)
-POST http://localhost:8080/api/orders
-Content-Type: application/json
+### Admin report
+GET {{base}}/api/reports/sales?from=2026-10-01&to=2026-10-31
 
-{"cashierId":1,"items":[{"menuItemId":10,"quantity":1}]}
-
-### 400: повторяющаяся позиция
-POST http://localhost:8080/api/orders
-Content-Type: application/json
-
-{"cashierId":1,"items":[{"menuItemId":3,"quantity":1},{"menuItemId":3,"quantity":2}]}
+### Logout
+POST {{base}}/api/auth/logout
+X-CSRF-TOKEN: {{csrf}}

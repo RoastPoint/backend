@@ -26,6 +26,7 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       DB_INIT_MODE: ${DB_INIT_MODE:-always}
       SERVER_PORT: 8080
+      DEMO_PASSWORD: ${DEMO_PASSWORD:-}
     ports:
       - "127.0.0.1:${APP_PORT:-8080}:8080"
     depends_on:
