@@ -1,0 +1,10 @@
+target/
+.idea/
+.git/
+*.iml
+*.zip
+.env
+.env.*
+README*
+check-api.ps1
+requests.http

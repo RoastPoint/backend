@@ -1,0 +1,74 @@
+@base = http://localhost:8080
+# Retain cookies. Define demoPassword in your private HTTP environment.
+### Obtain CSRF before login
+GET {{base}}/api/auth/csrf
+
+> {% client.global.set("csrf", response.body.token); %}
+
+### Login: use cashier1, barista1 or admin1
+POST {{base}}/api/auth/login
+Content-Type: application/x-www-form-urlencoded
+X-CSRF-TOKEN: {{csrf}}
+
+login=cashier1&password={{demoPassword}}
+
+### Refresh token after every login
+GET {{base}}/api/auth/csrf
+
+> {% client.global.set("csrf", response.body.token); %}
+
+### Current account
+GET {{base}}/api/auth/me
+
+### Menu
+GET {{base}}/api/menu
+
+### Create as cashier
+POST {{base}}/api/orders
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
+
+{"items":[{"menuItemId":3,"quantity":2}]}
+
+> {% client.global.set("orderId", response.body.id); %}
+
+### Read
+GET {{base}}/api/orders/{{orderId}}
+
+### Queue
+GET {{base}}/api/orders?status=accepted&limit=50&offset=0
+
+### Login as barista1 and refresh CSRF before this request
+PATCH {{base}}/api/orders/{{orderId}}/status
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
+
+{"status":"preparing"}
+
+### Barista marks ready
+PATCH {{base}}/api/orders/{{orderId}}/status
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
+
+{"status":"ready"}
+
+### Login as cashier1 and refresh CSRF
+PATCH {{base}}/api/orders/{{orderId}}/status
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
+
+{"status":"issued"}
+
+### Login as admin1 and refresh CSRF
+PUT {{base}}/api/menu/3
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
+
+{"categoryId":1,"name":"Капучино","price":210.00,"available":true}
+
+### Admin report
+GET {{base}}/api/reports/sales?from=2026-10-01&to=2026-10-31
+
+### Logout
+POST {{base}}/api/auth/logout
+X-CSRF-TOKEN: {{csrf}}
